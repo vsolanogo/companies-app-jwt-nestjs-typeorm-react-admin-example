@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useRef } from "react";
 import { setDisplayMessageAction } from "../redux/user/userActions";
 import { useAppDispatch } from "../store/store";
-import OutsideClickHandler from "react-outside-click-handler";
+import { useOnClickOutside } from "usehooks-ts";
 import styled from "@emotion/styled";
 import { css } from "@emotion/react";
 import {
@@ -17,9 +17,13 @@ export const ModalWindowMessage: React.FC = (): JSX.Element => {
 
   const message = useDisplayMessage();
 
-  const handleClose = () => {
+  const ref = useRef(null);
+
+  const handleClickOutside = () => {
     dispatch(setDisplayMessageAction(null));
   };
+
+  useOnClickOutside(ref, handleClickOutside);
 
   if (message)
     return (
@@ -27,18 +31,17 @@ export const ModalWindowMessage: React.FC = (): JSX.Element => {
         <SharedModalBackground />
 
         <EWindow>
-          <OutsideClickHandler onOutsideClick={handleClose}>
-            <div
-              css={css`
-                position: relative;
-              `}
-            >
-              <SharedCard>
-                <CloseButton onClick={handleClose}></CloseButton>
-                <Heading2>{message}</Heading2>
-              </SharedCard>
-            </div>
-          </OutsideClickHandler>
+          <div
+            css={css`
+              position: relative;
+            `}
+            ref={ref}
+          >
+            <SharedCard>
+              <CloseButton onClick={handleClickOutside}></CloseButton>
+              <Heading2>{message}</Heading2>
+            </SharedCard>
+          </div>
         </EWindow>
       </>
     );

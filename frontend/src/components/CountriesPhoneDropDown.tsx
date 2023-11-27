@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import styled from "@emotion/styled";
 import { getCountryCallingCode, CountryCode } from "libphonenumber-js";
 import ReactCountryFlag from "react-country-flag";
@@ -13,12 +13,21 @@ import {
   usePhoneDropDownState,
 } from "../redux/selectors/selectorHooks";
 import { CountryInfo } from "../redux/register/registerReducer";
-import OutsideClickHandler from "react-outside-click-handler";
+import { useOnClickOutside } from "usehooks-ts";
 
 export const CountriesPhoneDropDown: React.FC = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const isOpen = usePhoneDropDownState();
   const countries = useCountries();
+  const ref = useRef(null);
+
+  const handleClickOutside = () => {
+    if (isOpen) {
+      dispatch(hidePhoneDropDownOperation());
+    }
+  };
+
+  useOnClickOutside(ref, handleClickOutside);
 
   const handleCountryChange = (code: string) => {
     dispatch(setPhoneCountryCodeAction(code));
@@ -29,37 +38,29 @@ export const CountriesPhoneDropDown: React.FC = (): JSX.Element => {
   };
 
   return (
-    <OutsideClickHandler
-      onOutsideClick={() => {
-        if (isOpen) {
-          dispatch(hidePhoneDropDownOperation());
-        }
-      }}
-    >
-      <EWrapper data-display={isOpen}>
-        {countries.map((i: CountryInfo, index) => (
-          <EListItem
-            key={`${i.id}countriesphone`}
-            tabIndex={0}
-            onClick={() => {
-              handleCountryChange(i.id);
-            }}
-          >
-            <ReactCountryFlag
-              countryCode={i.id}
-              svg
-              style={{ height: "22px", width: "25px" }}
-            />
+    <EWrapper data-display={isOpen} ref={ref}>
+      {countries.map((i: CountryInfo, index) => (
+        <EListItem
+          key={`${i.id}countriesphone`}
+          tabIndex={0}
+          onClick={() => {
+            handleCountryChange(i.id);
+          }}
+        >
+          <ReactCountryFlag
+            countryCode={i.id}
+            svg
+            style={{ height: "22px", width: "25px" }}
+          />
 
-            <EElement>{i.name}</EElement>
+          <EElement>{i.name}</EElement>
 
-            <EElement>
-              +{`${getCountryCallingCode(i.id as CountryCode)}`}
-            </EElement>
-          </EListItem>
-        ))}
-      </EWrapper>
-    </OutsideClickHandler>
+          <EElement>
+            +{`${getCountryCallingCode(i.id as CountryCode)}`}
+          </EElement>
+        </EListItem>
+      ))}
+    </EWrapper>
   );
 };
 
