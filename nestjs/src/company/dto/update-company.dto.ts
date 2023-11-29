@@ -1,27 +1,24 @@
-import { IsString, IsInt, IsOptional } from 'class-validator';
+import { IsString, IsInt } from 'class-validator';
 
 export class UpdateCompanyDto {
   @IsString()
-  @IsOptional()
-  name?: string;
+  id: string;
 
   @IsString()
-  @IsOptional()
-  address?: string;
+  name: string;
 
   @IsString()
-  @IsOptional()
-  serviceOfActivity?: string;
+  address: string;
+
+  @IsString()
+  serviceOfActivity: string;
 
   @IsInt()
-  @IsOptional()
-  numberOfEmployees?: number;
+  numberOfEmployees: number;
 
   @IsString()
-  @IsOptional()
-  description?: string;
+  description: string;
 
   @IsString()
-  @IsOptional()
-  type?: string;
+  type: string;
 }

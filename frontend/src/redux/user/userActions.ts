@@ -1,6 +1,6 @@
 import { AppThunkAction } from "../../store/store";
 import { AuthApi, UserApi } from "../../api/api";
-import { SigninDto, SignupFormValues } from "../../models/models";
+import { SigninDto, UserFormValues } from "../../models/models";
 import { navigate } from "wouter/use-location";
 import { removeToken, storeToken } from "../../helpers/tokenstorage";
 import { usersSlice } from "../users/usersSlice";
@@ -95,7 +95,7 @@ export const loadUserOperation =
   };
 
 export const registerOperation =
-  (registerCredentials: SignupFormValues): AppThunkAction<Promise<void>> =>
+  (registerCredentials: UserFormValues): AppThunkAction<Promise<void>> =>
   async (dispatch) => {
     dispatch(registerStartAction());
 
@@ -103,12 +103,16 @@ export const registerOperation =
       const res = await AuthApi.signup(registerCredentials);
       dispatch(registerSuccessAction(res.data));
 
-      dispatch(
-        loginOperation({
-          email: registerCredentials.email,
-          password: registerCredentials.password,
-        })
-      );
+      const { email, password } = registerCredentials;
+      if (email !== undefined && password !== undefined) {
+        dispatch(
+          loginOperation({
+            email,
+            password,
+          })
+        );
+      }
+      
     } catch (error: any) {
       dispatch(setDisplayMessageAction(error?.response?.data?.message));
 

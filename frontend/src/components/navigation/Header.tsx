@@ -1,7 +1,6 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { useRoute, useLocation, useParams, useRouter, Link } from "wouter";
-
 import { useIsAuthenticated } from "../../redux/selectors/selectorHooks";
 import { logoutOperation } from "../../redux/user/userActions";
 import { useAppDispatch } from "../../store/store";
@@ -18,23 +17,23 @@ export const Header: React.FC = (): JSX.Element => {
 
   const [match, params] = useRoute("/signin");
 
-  console.log(match);
-  console.log(params);
+  // console.log(match);
+  // console.log(params);
 
-  const [location, /*setLocation*/] = useLocation();
+  const [location /*setLocation*/] = useLocation();
 
-  console.log({ location });
+  // console.log({ location });
 
   const params2 = useParams();
 
-  console.log({ params2 });
+  // console.log({ params2 });
 
   const router = useRouter();
 
-  console.log({ router });
+  // console.log({ router });
 
   return (
-    <EHeader>
+    <EHeader data-columns={isAuthenticated && "4"}>
       {!isAuthenticated && (
         <>
           <Link href={`/signin`}>
@@ -65,6 +64,12 @@ export const Header: React.FC = (): JSX.Element => {
             </SharedButton>
           </Link>
 
+          <Link href={`/newcompany`}>
+            <SharedButton data-isactive={location === "/newcompany"}>
+              New company
+            </SharedButton>
+          </Link>
+
           <SharedButton onClick={handleSignout}>Sign out</SharedButton>
         </>
       )}
@@ -88,4 +93,8 @@ const EHeader = styled.header`
   padding: 0.5rem;
   border: 1px solid #d2d6dc;
   border-radius: 0 0 0.375rem 0.375rem;
+
+  &[data-columns="4"] {
+    grid-template-columns: max-content max-content max-content max-content;
+  }
 `;

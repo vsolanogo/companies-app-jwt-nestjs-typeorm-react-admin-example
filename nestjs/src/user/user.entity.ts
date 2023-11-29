@@ -17,6 +17,9 @@ export class User {
   @OneToMany(() => Company, (i) => i.user)
   companies: Company[];
 
+  @Column({ default: false })
+  admin: boolean;
+
   @Column({ nullable: false, length: 255, unique: true })
   @IsString()
   @IsEmail()

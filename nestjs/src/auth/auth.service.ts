@@ -25,15 +25,15 @@ export class AuthService {
     const match = await bcrypt.compare(password, user?.password);
 
     if (match) {
-      // const { password, ...result } = user;
-      // return result as UserWithoutPassword;
       return user;
     }
     return null;
   }
 
   async login(user: any) {
-    const payload = { email: user.email, sub: user.id };
+    const payload = { email: user.email, sub: user.id, admin: user.admin };
+    console.log({ payload });
+
     const accessToken = this.jwtService.sign(payload);
 
     return {

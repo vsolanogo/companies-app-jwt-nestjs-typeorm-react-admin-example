@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -10,6 +11,7 @@ import { CreateCompanyDto } from './dto/create-company.dto';
 import { User } from '../user/user.entity';
 import { validate } from 'class-validator';
 import { GetCompaniesDto } from './dto/get-companies.dto';
+import { UpdateCompanyDto } from './dto/update-company.dto';
 
 @Injectable()
 export class CompanyService {
@@ -20,7 +22,68 @@ export class CompanyService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async getAll(
+  async updateCompany(
+    companyDto: UpdateCompanyDto,
+    userId: string,
+    isAdmin: boolean,
+  ): Promise<Company> {
+    const modifiedCompany = await this.companyRepository.findOne({
+      relations: ['user'],
+      where: { id: companyDto.id },
+    });
+
+    const userPatcher = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!userPatcher) {
+      throw new BadRequestException('User not found');
+    }
+
+    if (!modifiedCompany) {
+      throw new BadRequestException('Company not found');
+    }
+
+    if (!isAdmin && modifiedCompany.user.id !== userId) {
+      throw new ForbiddenException(
+        'You do not have permission to get this entity',
+      );
+    }
+
+    modifiedCompany.name = companyDto.name;
+    modifiedCompany.address = companyDto.address;
+    modifiedCompany.serviceOfActivity = companyDto.serviceOfActivity;
+    modifiedCompany.numberOfEmployees = companyDto.numberOfEmployees;
+    modifiedCompany.description = companyDto.description;
+    modifiedCompany.type = companyDto.type;
+
+    return this.companyRepository.save(modifiedCompany);
+  }
+
+  async getById(
+    companyId: string,
+    userId: string,
+    isAdmin: boolean,
+  ): Promise<Company> {
+    const company = await this.companyRepository.findOne({
+      relations: ['user'],
+      where: { id: companyId },
+    });
+
+    if (!company) {
+      throw new NotFoundException('Company not found');
+    }
+
+    if (isAdmin || company.user.id === userId) {
+      return company;
+    }
+
+    throw new ForbiddenException(
+      'You do not have permission to get this entity',
+    );
+  }
+
+  async getAllUserCompanies(
     getCompaniesDto: GetCompaniesDto,
     userId: string,
   ): Promise<Company[]> {

@@ -18,6 +18,7 @@ import {
   getSortOrderEmoji,
   invertSortOrder,
 } from "../../redux/companies/companiesSlice";
+import { navigate } from "wouter/use-location";
 
 export const CompaniesTable: React.FC = (): JSX.Element => {
   const companyIds = useCompanyIds();
@@ -49,6 +50,10 @@ export const CompaniesTable: React.FC = (): JSX.Element => {
 
   const sortOrderEmoji = getSortOrderEmoji(sortOrderType);
 
+  const handlerElementClick = (id) => {
+    navigate(`/company/${id}`);
+  };
+
   return (
     <ECompaniesTable>
       <table>
@@ -60,7 +65,7 @@ export const CompaniesTable: React.FC = (): JSX.Element => {
             </th>
             <th>Description</th>
             <th>Number of Employees</th>
-            <th tabIndex={0}  data-isbutton="true" onClick={serviceClickHandler}>
+            <th tabIndex={0} data-isbutton="true" onClick={serviceClickHandler}>
               Service of Activity
               {sortByType === "serviceOfActivity" && sortOrderEmoji}
             </th>
@@ -70,7 +75,14 @@ export const CompaniesTable: React.FC = (): JSX.Element => {
         </thead>
         <tbody>
           {companyIds.map((i, index) => (
-            <tr key={i} tabIndex={0}>
+            <tr
+              key={i}
+              tabIndex={0}
+              onClick={() => {
+                handlerElementClick(companyEntities[i]?.id);
+              }}
+              data-isbutton="true"
+            >
               <td>{index + 1}</td>
               <td>{companyEntities[i]?.name}</td>
               <td>{companyEntities[i]?.description}</td>

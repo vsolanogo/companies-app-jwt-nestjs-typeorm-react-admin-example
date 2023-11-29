@@ -2,39 +2,38 @@ import React, { useRef } from "react";
 import styled from "@emotion/styled";
 import { getCountryCallingCode, CountryCode } from "libphonenumber-js";
 import ReactCountryFlag from "react-country-flag";
-import { useAppDispatch } from "../store/store";
-import {
-  hidePhoneDropDownOperation,
-  setPhoneCountryCodeAction,
-  setPhoneValueAction,
-} from "../redux/register/registerActions";
-import {
-  useCountries,
-  usePhoneDropDownState,
-} from "../redux/selectors/selectorHooks";
+import { useCountries } from "../redux/selectors/selectorHooks";
 import { CountryInfo } from "../redux/register/registerReducer";
 import { useOnClickOutside } from "usehooks-ts";
 
-export const CountriesPhoneDropDown: React.FC = (): JSX.Element => {
-  const dispatch = useAppDispatch();
-  const isOpen = usePhoneDropDownState();
+interface CountriesPhoneDropDownProps {
+  onPhoneCountryCode: (code: string) => void;
+  onPhoneValue: (value: string) => void;
+  onPhoneDropDown: (value: boolean) => void;
+  isOpen: boolean;
+}
+
+export const CountriesPhoneDropDown: React.FC<CountriesPhoneDropDownProps> = ({
+  onPhoneCountryCode,
+  onPhoneValue,
+  onPhoneDropDown,
+  isOpen,
+}: CountriesPhoneDropDownProps): JSX.Element => {
   const countries = useCountries();
   const ref = useRef(null);
 
   const handleClickOutside = () => {
     if (isOpen) {
-      dispatch(hidePhoneDropDownOperation());
+      onPhoneDropDown(false);
     }
   };
 
   useOnClickOutside(ref, handleClickOutside);
 
   const handleCountryChange = (code: string) => {
-    dispatch(setPhoneCountryCodeAction(code));
-    dispatch(
-      setPhoneValueAction(`+${getCountryCallingCode(code as CountryCode)}`)
-    );
-    dispatch(hidePhoneDropDownOperation());
+    onPhoneCountryCode(code);
+    onPhoneValue(`+${getCountryCallingCode(code as CountryCode)}`);
+    onPhoneDropDown(false);
   };
 
   return (

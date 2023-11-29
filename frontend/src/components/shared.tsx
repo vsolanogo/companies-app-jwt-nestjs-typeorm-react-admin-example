@@ -20,7 +20,7 @@ export const SharedModalBackground = styled.div`
   top: 0;
 `;
 
-export const Heading2 = styled.h2`
+export const Heading = styled.h2`
   background: linear-gradient(to right, #21ceee, #0047ab);
   color: transparent;
   background-clip: text;
@@ -149,6 +149,11 @@ export const SharedInput = styled.input`
     }
   }
 
+  &[data-disabled="true"] {
+    cursor: not-allowed;
+    color: #a0aec0;
+  }
+
   ::placeholder {
     color: #a0aec0;
   }
@@ -230,6 +235,12 @@ export const ECompaniesTable = styled.div`
         &:hover {
           background: linear-gradient(to right, #2980b9, #3498db);
         }
+      }
+    }
+
+    tr {
+      &[data-isbutton="true"] {
+        cursor: pointer;
       }
     }
 

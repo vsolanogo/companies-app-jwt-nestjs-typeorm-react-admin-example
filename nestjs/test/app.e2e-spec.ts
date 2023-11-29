@@ -16,6 +16,7 @@ import {
 } from '@ngneat/falso';
 import { faker } from '@faker-js/faker';
 import { CreateCompanyDto } from 'src/company/dto/create-company.dto';
+import { UpdateUserDto } from 'src/user/dto/update-user.dto';
 
 const generateRandomSignupDto = (): SignupDto => ({
   email: randEmail(),
@@ -225,8 +226,6 @@ describe('Company Tests (e2e)', () => {
       .send(signinDto)
       .expect(HttpStatus.OK);
 
-    console.log({ signinDto });
-
     accessToken = signinResponse.body.access_token;
   });
 
@@ -308,6 +307,5 @@ describe('Company Tests (e2e)', () => {
       .expect(HttpStatus.OK);
 
     expect(response.body).toHaveLength(amount);
-
   }, 100000);
 });

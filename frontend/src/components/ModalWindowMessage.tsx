@@ -5,7 +5,7 @@ import { useOnClickOutside } from "usehooks-ts";
 import styled from "@emotion/styled";
 import { css } from "@emotion/react";
 import {
-  Heading2,
+  Heading,
   SharedModalBackground,
   SharedCard,
   SharedButton,
@@ -39,7 +39,7 @@ export const ModalWindowMessage: React.FC = (): JSX.Element => {
           >
             <SharedCard>
               <CloseButton onClick={handleClickOutside}></CloseButton>
-              <Heading2>{message}</Heading2>
+              <Heading>{message}</Heading>
             </SharedCard>
           </div>
         </EWindow>

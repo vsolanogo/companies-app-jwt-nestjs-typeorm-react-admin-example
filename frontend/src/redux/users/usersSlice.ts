@@ -13,8 +13,8 @@ export const usersSlice = createSlice({
   initialState: userAdapter.getInitialState(),
   reducers: {
     addOne: userAdapter.addOne,
+    upsertOne: userAdapter.upsertOne,
   },
 });
 
-// const allUsers = userAdapter.getSelectors();
 export const { selectById: selectUserById } = userAdapter.getSelectors();

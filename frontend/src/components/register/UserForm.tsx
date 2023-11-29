@@ -1,9 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import ReactCountryFlag from "react-country-flag";
 import { css } from "@emotion/react";
-import { useAppDispatch } from "../store/store";
-import { registerOperation } from "../redux/user/userActions";
 import {
   SharedButton,
   SharedCard,
@@ -14,46 +12,49 @@ import {
   ErrorMessage,
   EFieldWrapper,
   InputLabel,
-} from "./shared";
-import { CountriesPhoneDropDown } from "./CountriesPhoneDropDown";
-import {
-  setPhoneCountryCodeAction,
-  setPhoneValueAction,
-  displayPhoneDropDownOperation,
-} from "../redux/register/registerActions";
-import {
-  useCurrentPhoneCountryCode,
-  usePhoneDropDownState,
-  usePhoneValue,
-} from "../redux/selectors/selectorHooks";
-import { pressOnlyNumbers } from "../helpers/pressOnlyNumbers";
-import {
-  SignupFormErrors,
-  SignupFormValues,
-  signUpValidationSchema,
-} from "../models/models";
+} from "../shared";
+import { CountriesPhoneDropDown } from "../CountriesPhoneDropDown";
+import { pressOnlyNumbers } from "../../helpers/pressOnlyNumbers";
+import { UserFormValues, validateData } from "../../models/models";
 
-async function validateData(data) {
-  try {
-    await signUpValidationSchema.validate(data, { abortEarly: false });
-    return {}; // No validation errors
-  } catch (validationError: any) {
-    // Format errors as an object with field names
-    const errors = {};
-    validationError?.inner.forEach((error) => {
-      if (!errors[error.path]) {
-        errors[error.path] = error.message;
-      }
-    });
-    return errors;
-  }
+interface UserProps {
+  id?: string;
+  noPassword?: boolean;
+  defaultPhone?: string;
+  defaultPhoneCountryCode?: string;
+  defaultEmail?: string;
+  defaultFirstName?: string;
+  defaultLastName?: string;
+  defaultNickName?: string;
+  defaultDescription?: string;
+  defaultPosition?: string;
+  submitButtonName?: string;
+  disableEmail?: boolean;
+  disableNickName?: boolean;
+  validationSchema: any;
+  onSubmit: (formData: UserFormValues) => void;
 }
 
-export const Register: React.FC = (): JSX.Element => {
-  const dispatch = useAppDispatch();
-  const phone = usePhoneValue();
-  const currentCountryCode = useCurrentPhoneCountryCode();
-
+export const UserForm: React.FC<UserProps> = ({
+  id,
+  noPassword = false,
+  defaultPhone = "+380",
+  defaultPhoneCountryCode = "UA",
+  defaultEmail = "",
+  defaultFirstName = "",
+  defaultLastName = "",
+  defaultNickName = "",
+  defaultDescription = "",
+  defaultPosition = "",
+  submitButtonName = "Register",
+  validationSchema,
+  onSubmit,
+  disableEmail = false,
+  disableNickName = false,
+}): JSX.Element => {
+  const [phone, setPhone] = useState("");
+  const [phoneCountryCode, setPhoneCountryCode] = useState("");
+  const [phoneDropDown, setPhoneDropDown] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -62,13 +63,32 @@ export const Register: React.FC = (): JSX.Element => {
   const [nickName, setNickName] = useState("");
   const [description, setDescription] = useState("");
   const [position, setPosition] = useState("");
-  const [signupFormErrors, setSignupFormErrors] = useState<SignupFormErrors>(
-    {}
-  );
-  const phoneDropDownIsOpen = usePhoneDropDownState();
+
+  useEffect(() => {
+    setPhone(defaultPhone);
+    setPhoneCountryCode(defaultPhoneCountryCode);
+    setEmail(defaultEmail);
+    setFirstName(defaultFirstName);
+    setLastName(defaultLastName);
+    setNickName(defaultNickName);
+    setDescription(defaultDescription);
+    setPosition(defaultPosition);
+  }, [
+    defaultPhone,
+    defaultPhoneCountryCode,
+    defaultEmail,
+    defaultFirstName,
+    defaultLastName,
+    defaultNickName,
+    defaultDescription,
+    defaultPosition,
+  ]);
+  type FormErrors = typeof validationSchema.fields;
+
+  const [signupFormErrors, setSignupFormErrors] = useState<FormErrors>({});
 
   const handleCountryFlagClick = (e) => {
-    dispatch(displayPhoneDropDownOperation());
+    setPhoneDropDown(true);
   };
 
   const handleNumberChange = (e) => {
@@ -84,22 +104,21 @@ export const Register: React.FC = (): JSX.Element => {
 
     if (resParse?.country && resParse?.isValid()) {
       const formatted = resParse.format("INTERNATIONAL");
-      dispatch(setPhoneValueAction(formatted));
-      dispatch(setPhoneCountryCodeAction(resParse.country));
+      setPhone(formatted);
+      setPhoneCountryCode(resParse.country);
     } else if (resParse?.country) {
-      dispatch(setPhoneValueAction(resParse.number));
-      dispatch(setPhoneCountryCodeAction(resParse.country));
+      setPhone(resParse.number);
+      setPhoneCountryCode(resParse.country);
     } else if (resParse) {
-      dispatch(setPhoneValueAction(resParse.number));
-      dispatch(setPhoneCountryCodeAction(currentCountryCode));
+      setPhone(resParse.number);
     } else {
-      dispatch(setPhoneValueAction(val));
-      dispatch(setPhoneCountryCodeAction(currentCountryCode));
+      setPhone(val);
     }
   };
 
-  const getRegisterData = () => {
-    const registerData: SignupFormValues = {
+  const collectPossibleFields = () => {
+    const registerData: UserFormValues = {
+      id,
       email,
       password,
       confirmPassword,
@@ -115,7 +134,10 @@ export const Register: React.FC = (): JSX.Element => {
   };
 
   const validateFields = async () => {
-    const errors = await validateData(getRegisterData());
+    const errors = await validateData(
+      collectPossibleFields(),
+      validationSchema
+    );
 
     if (Object.keys(errors).length === 0) {
       setSignupFormErrors({});
@@ -126,18 +148,14 @@ export const Register: React.FC = (): JSX.Element => {
     return errors;
   };
 
-  const handleRegister = async () => {
+  const handleSubmit = async () => {
     const errors = await validateFields();
 
-    console.log({errors})
-
     if (Object.keys(errors).length === 0) {
-      dispatch(registerOperation(getRegisterData()));
+      onSubmit(collectPossibleFields());
     }
   };
 
-
-  console.log({signupFormErrors})
   return (
     <SharedCard>
       <FormInputsLayout>
@@ -148,10 +166,13 @@ export const Register: React.FC = (): JSX.Element => {
             type="email"
             placeholder="Email"
             onChange={(e) => {
-              setEmail(e.target.value);
+              if (!disableEmail) {
+                setEmail(e.target.value);
+              }
             }}
             value={email}
             data-iserror={!!signupFormErrors.email}
+            data-disabled={disableEmail}
           />
 
           <ErrorMessage data-iserror={!!signupFormErrors.email}>
@@ -159,51 +180,54 @@ export const Register: React.FC = (): JSX.Element => {
           </ErrorMessage>
         </EFieldWrapper>
 
-        <EFieldWrapper>
-          <InputLabel data-display={!!password}>Password</InputLabel>
+        {!noPassword && (
+          <>
+            <EFieldWrapper>
+              <InputLabel data-display={!!password}>Password</InputLabel>
 
-          <SharedInput
-            type="password"
-            placeholder="Password"
-            onChange={(e) => {
-              setPassword(e.target.value);
-            }}
-            value={password}
-            data-iserror={!!signupFormErrors.password}
-          />
+              <SharedInput
+                type="password"
+                placeholder="Password"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                }}
+                value={password}
+                data-iserror={!!signupFormErrors.password}
+              />
 
-          <ErrorMessage data-iserror={!!signupFormErrors.password}>
-            {signupFormErrors.password}
-          </ErrorMessage>
-        </EFieldWrapper>
+              <ErrorMessage data-iserror={!!signupFormErrors.password}>
+                {signupFormErrors.password}
+              </ErrorMessage>
+            </EFieldWrapper>
+            <EFieldWrapper>
+              <InputLabel data-display={!!confirmPassword}>
+                Confirm password
+              </InputLabel>
 
-        <EFieldWrapper>
-          <InputLabel data-display={!!confirmPassword}>
-            Confirm password
-          </InputLabel>
+              <SharedInput
+                type="password"
+                placeholder="Confirm password"
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                }}
+                value={confirmPassword}
+                data-iserror={!!signupFormErrors.confirmPassword}
+              />
 
-          <SharedInput
-            type="password"
-            placeholder="Confirm password"
-            onChange={(e) => {
-              setConfirmPassword(e.target.value);
-            }}
-            value={confirmPassword}
-            data-iserror={!!signupFormErrors.confirmPassword}
-          />
-
-          <ErrorMessage data-iserror={!!signupFormErrors.confirmPassword}>
-            {signupFormErrors.confirmPassword}
-          </ErrorMessage>
-        </EFieldWrapper>
+              <ErrorMessage data-iserror={!!signupFormErrors.confirmPassword}>
+                {signupFormErrors.confirmPassword}
+              </ErrorMessage>
+            </EFieldWrapper>{" "}
+          </>
+        )}
 
         <EPhoneBlock>
           <SharedButtonLikeInput
             onClick={handleCountryFlagClick}
-            disabled={phoneDropDownIsOpen}
+            disabled={phoneDropDown}
           >
             <ReactCountryFlag
-              countryCode={currentCountryCode}
+              countryCode={phoneCountryCode}
               svg
               style={{ height: "22px", width: "25px" }}
             />
@@ -232,7 +256,12 @@ export const Register: React.FC = (): JSX.Element => {
             position: relative;
           `}
         >
-          <CountriesPhoneDropDown />
+          <CountriesPhoneDropDown
+            onPhoneValue={setPhone}
+            onPhoneCountryCode={setPhoneCountryCode}
+            onPhoneDropDown={setPhoneDropDown}
+            isOpen={phoneDropDown}
+          />
         </div>
 
         <EFieldWrapper>
@@ -277,10 +306,13 @@ export const Register: React.FC = (): JSX.Element => {
             type="text"
             placeholder="Nickname"
             onChange={(e) => {
-              setNickName(e.target.value);
+              if (!disableNickName) {
+                setNickName(e.target.value);
+              }
             }}
             value={nickName}
             data-iserror={!!signupFormErrors.nickName}
+            data-disabled={disableEmail}
           />
           <ErrorMessage data-iserror={!!signupFormErrors.nickName}>
             {signupFormErrors.nickName}
@@ -299,6 +331,9 @@ export const Register: React.FC = (): JSX.Element => {
             value={description}
             as={"textarea"}
             data-iserror={!!signupFormErrors.description}
+            css={css`
+              min-height: 10em;
+            `}
           />
           <ErrorMessage data-iserror={!!signupFormErrors.description}>
             {signupFormErrors.description}
@@ -322,7 +357,7 @@ export const Register: React.FC = (): JSX.Element => {
           </ErrorMessage>
         </EFieldWrapper>
 
-        <SharedButton onClick={handleRegister}>Register</SharedButton>
+        <SharedButton onClick={handleSubmit}>{submitButtonName}</SharedButton>
       </FormInputsLayout>
     </SharedCard>
   );

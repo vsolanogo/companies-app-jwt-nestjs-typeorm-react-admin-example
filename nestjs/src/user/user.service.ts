@@ -1,10 +1,15 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, UserWithoutPassword } from './user.entity';
+import { User } from './user.entity';
 import { SignupDto } from '../auth/dto/signup.dto';
 import { validate } from 'class-validator';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -57,5 +62,41 @@ export class UserService {
 
     const { password, ...result } = user;
     return result as User;
+  }
+
+  async updateUser(
+    updateUserDto: UpdateUserDto,
+    userPatcherId: string,
+    isAdmin,
+  ): Promise<User> {
+    const userPatcher = await this.userRepository.findOne({
+      where: { id: userPatcherId },
+    });
+
+    if (!userPatcher) {
+      throw new BadRequestException('User not found');
+    }
+
+    if (userPatcher.id !== updateUserDto.id && !isAdmin) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this entity',
+      );
+    }
+
+    const modifiedUser = await this.userRepository.findOne({
+      where: { id: updateUserDto?.id },
+    });
+
+    if (!userPatcher) {
+      throw new BadRequestException('User not found');
+    }
+
+    modifiedUser.phoneNumber = updateUserDto.phoneNumber;
+    modifiedUser.firstName = updateUserDto.firstName;
+    modifiedUser.lastName = updateUserDto.lastName;
+    modifiedUser.description = updateUserDto.description;
+    modifiedUser.position = updateUserDto.position;
+
+    return this.userRepository.save(modifiedUser);
   }
 }

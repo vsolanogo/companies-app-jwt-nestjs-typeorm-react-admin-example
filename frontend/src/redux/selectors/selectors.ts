@@ -45,12 +45,3 @@ export const selectCompaniesSortByType = (state) => {
 export const selectCompaniesSortOrderType = (state) => {
   return selectCompaniesState(state)?.sortOrderType;
 };
-
-
-
-// sortByType: 'name' as SortByType,
-// sortOrderType: 'asc' as SortOrderType,
-
-// export const select = (state) => {
-//   return selectUserState(state)?.isAuthenticated ?? false;
-// };

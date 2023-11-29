@@ -31,6 +31,7 @@ export const companiesSlice = createSlice({
   },
   reducers: {
     addOne: companyAdapter.addOne,
+    upsertOne: companyAdapter.upsertOne,
     addMany: companyAdapter.addMany,
     removeAll: companyAdapter.removeAll,
   },
@@ -56,7 +57,7 @@ export const companiesSlice = createSlice({
 });
 
 const companiesgetselectors = companyAdapter.getSelectors();
-console.log({ companiesgetselectors });
+
 export const {
   selectIds: selectCompanyIds,
   selectEntities: selectCompanyEntities,
