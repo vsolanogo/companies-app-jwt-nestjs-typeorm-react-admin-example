@@ -26,6 +26,8 @@
 
 8. Explore the app at [http://localhost:3001/](http://localhost:3001/) in your preferred web browser.
 
+9. Admin user credentials are described in the `user.service.ts` file: Email - `admin@admin.com`, Password - `admin`.
+
 If you encounter issues while running my Docker images, try using the following commands to clean up. 
 
 `docker system prune -af`
