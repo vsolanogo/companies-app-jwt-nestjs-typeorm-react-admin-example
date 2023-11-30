@@ -1,8 +1,10 @@
 import styled from "@emotion/styled";
 import { css, keyframes } from "@emotion/react";
+import { Link } from "wouter";
 
 export const EWrapper = styled.div`
-  max-width: 100em;
+  width: 100em;
+  max-width: 100vw;
   display: grid;
   grid-row-gap: 0.5em;
   margin: 0 auto;
@@ -31,6 +33,17 @@ export const Heading = styled.h2`
   font-family: Arial, sans-serif;
 `;
 
+export const HeadingH3 = styled.h3`
+  background: linear-gradient(to right, #21ceee, #0047ab);
+  color: transparent;
+  background-clip: text;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 1rem;
+  font-family: Arial, sans-serif;
+`;
+
 export const CloseButton = styled.button`
   position: absolute;
   top: 2px;
@@ -51,7 +64,7 @@ export const FormInputsLayout = styled.div`
   grid-gap: 0.5em;
 `;
 
-export const SharedButton = styled.button`
+const buttonStyless = css`
   padding: 0.5rem 1rem;
   font-weight: bold;
   font-size: 0.875rem;
@@ -63,6 +76,7 @@ export const SharedButton = styled.button`
   transition: box-shadow 0.15s ease;
   border: 0;
   cursor: pointer;
+  text-decoration: none;
 
   :hover {
     box-shadow: 0px 10px 20px rgba(50, 50, 93, 0.1),
@@ -79,9 +93,36 @@ export const SharedButton = styled.button`
     }
   }
 
+  &[data-isadmin="true"] {
+    background-image: linear-gradient(to right, #22d3ee, #ff4500);
+    box-shadow: 0px 4px 6px rgba(255, 69, 0, 0.11),
+      0px 1px 3px rgba(0, 0, 0, 0.08);
+
+    :hover {
+      box-shadow: 0px 10px 20px rgba(255, 69, 0, 0.1),
+        0px 6px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    :focus {
+      box-shadow: 0 0 0 2px rgba(255, 69, 0, 0.5);
+    }
+  }
+
   &[data-isactive="true"] {
     background-image: linear-gradient(to right, #00ff00, #00cc00);
   }
+
+  &[data-isremoval="true"] {
+    background-image: linear-gradient(to right, #ff5757, #ff0000);
+  }
+`;
+
+export const SharedButton = styled.button`
+  ${buttonStyless};
+`;
+
+export const SharedButtonLink = styled(Link)`
+  ${buttonStyless};
 `;
 
 export const SharedCard = styled.div`
@@ -89,10 +130,12 @@ export const SharedCard = styled.div`
   border-radius: 0.375rem;
   box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
+  width: 100%;
   max-width: 400px;
   margin: 0 auto;
   font-weight: bold;
   border: 1px solid #d2d6dc;
+  box-sizing: border-box;
 
   &[data-isloading="true"] {
     pointer-events: none;

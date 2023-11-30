@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useAppDispatch } from "../../store/store";
 import {
+  deleteCompanyOperation,
   getCompanyOperation,
   patchCompanyOperation,
 } from "../../redux/companies/companiesActions";
@@ -37,8 +38,6 @@ export const CompanyLayout: React.FC = (): JSX.Element => {
       type,
     } = formData;
 
-    console.log({ formData });
-
     if (!id) {
       console.error("Company ID is required for form submission.");
       return;
@@ -56,21 +55,24 @@ export const CompanyLayout: React.FC = (): JSX.Element => {
     dispatch(patchCompanyOperation(postCompanyValues));
   };
 
+  const handleRemove = (id: string) => {
+    dispatch(deleteCompanyOperation(id));
+  };
+
   return (
-    <div>
-      <CompanyForm
-        id={company?.id}
-        userId={company?.user?.id}
-        defaultName={company?.name}
-        defaultAddress={company?.address}
-        defaultServiceOfActivity={company?.serviceOfActivity}
-        defaultNumberOfEmployees={company?.numberOfEmployees}
-        defaultDescription={company?.description}
-        defaultType={company?.type}
-        submitButtonName="Update"
-        validationSchema={newCompanyValidationSchema}
-        onSubmit={handleFormSubmit}
-      />
-    </div>
+    <CompanyForm
+      id={company?.id}
+      userId={company?.user?.id}
+      defaultName={company?.name}
+      defaultAddress={company?.address}
+      defaultServiceOfActivity={company?.serviceOfActivity}
+      defaultNumberOfEmployees={company?.numberOfEmployees}
+      defaultDescription={company?.description}
+      defaultType={company?.type}
+      submitButtonName="Update"
+      validationSchema={newCompanyValidationSchema}
+      onSubmit={handleFormSubmit}
+      onCompanyRemove={handleRemove}
+    />
   );
 };

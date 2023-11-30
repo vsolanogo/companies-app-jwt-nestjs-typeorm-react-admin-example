@@ -1,9 +1,10 @@
+import { navigate } from "wouter/use-location";
 import { AppThunkAction } from "../../store/store";
 import { AuthApi, UserApi } from "../../api/api";
 import { SigninDto, UserFormValues } from "../../models/models";
-import { navigate } from "wouter/use-location";
 import { removeToken, storeToken } from "../../helpers/tokenstorage";
 import { usersSlice } from "../users/usersSlice";
+import { selectUserId } from "../selectors/selectors";
 
 export enum UserActions {
   LOAD_APP = "user/app/Load",
@@ -82,16 +83,25 @@ export const loadUserOperation =
 
     try {
       const res = await UserApi.get();
-
       dispatch(loadUserSuccessAction(res?.data?.id));
       dispatch(usersSlice.actions.addOne(res.data));
     } catch (error: any) {
+      removeToken();
+      dispatch(usersSlice.actions.removeAll());
       if (error?.response && error?.response?.status === 401) {
         dispatch(setDisplayMessageAction(error?.response?.data?.message));
       }
       dispatch(loadUserErrorAction());
       navigate("/signin");
     }
+  };
+
+export const logoutOperation =
+  (): AppThunkAction<Promise<void>> => async (dispatch, getState) => {
+    removeToken();
+    navigate("/signin");
+    dispatch(usersSlice.actions.removeAll());
+    AuthApi.logout();
   };
 
 export const registerOperation =
@@ -112,7 +122,6 @@ export const registerOperation =
           })
         );
       }
-      
     } catch (error: any) {
       dispatch(setDisplayMessageAction(error?.response?.data?.message));
 
@@ -142,20 +151,5 @@ export const loginOperation =
         dispatch(setDisplayMessageAction(error?.response?.data?.message));
         dispatch(loginErrorAction(error?.response?.data?.message));
       }
-    }
-  };
-
-export const logoutOperation =
-  (): AppThunkAction<Promise<void>> => async (dispatch) => {
-    dispatch(logoutStartAction());
-    removeToken();
-    navigate("/");
-
-    try {
-      await AuthApi.logout();
-      dispatch(logoutSuccessAction());
-      await dispatch(loadAppOperation());
-    } catch (error) {
-      dispatch(logoutErrorAction(error));
     }
   };

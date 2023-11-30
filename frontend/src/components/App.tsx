@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { EWrapper } from "./shared";
 import { Router } from "./Router";
 import { ModalWindowMessage } from "./ModalWindowMessage";
@@ -8,12 +8,18 @@ import { loadAppOperation } from "../redux/user/userActions";
 
 export const App = () => {
   const state = useReduxMainState();
-  console.log({state})
+  // console.log({ state });
   const dispatch = useAppDispatch();
 
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(loadAppOperation());
   }, []);
+
+  useEffect(() => {
+    if (!state?.user?.id) {
+      dispatch(loadAppOperation());
+    }
+  }, [state?.user?.id]);
 
   return (
     <>

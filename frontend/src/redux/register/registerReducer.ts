@@ -34,7 +34,7 @@ export interface RegisterState {
 }
 
 export const initialState: RegisterState = {
-  currentPhoneCountryCode: "UA",
+  currentPhoneCountryCode: "US",
   countries: countries,
   phoneDropDownState: false,
   phoneValue: "+380",

@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "serve": "npx serve -s dist"
   },
   "dependencies": {
     "@emotion/babel-preset-css-prop": "^11.11.0",
@@ -23,7 +24,6 @@
     "@vitejs/plugin-react": "^4.1.0",
     "axios": "^1.5.1",
     "countries-and-timezones": "^3.5.2",
-    "jsonwebtoken": "^9.0.2",
     "libphonenumber-js": "^1.10.51",
     "normalizr": "^3.6.2",
     "react": "^18.2.0",

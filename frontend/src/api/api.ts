@@ -1,9 +1,13 @@
 import axios from "axios";
 import { PatchCompanyFormValues } from "../models/models";
+import { getToken } from "../helpers/tokenstorage";
+import { store } from "../store/store";
+import { loadUserErrorAction } from "../redux/user/userActions";
+import { usersSlice } from "../redux/users/usersSlice";
 
 axios.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -12,6 +16,27 @@ axios.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+axios.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    const originalRequest = error.config;
+
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true;
+      store.dispatch(usersSlice.actions.removeAll());
+      store.dispatch(loadUserErrorAction());
+    }
+
     return Promise.reject(error);
   }
 );
@@ -26,9 +51,12 @@ const urls = {
   profile: `${apiUrl}/profile`,
   companies: `${apiUrl}/companies`,
   company: `${apiUrl}/company`,
-  patchCompany: (id: string) => `${apiUrl}/company/${id}`,
   getCompany: (id: string) => `${apiUrl}/company/${id}`,
+  deleteCompany: (id: string) => `${apiUrl}/company/${id}`,
+  getUserById: (id: string) => `${apiUrl}/user/${id}`,
   user: `${apiUrl}/user`,
+  companyList: `${apiUrl}/company/list`,
+  userList: `${apiUrl}/user/list`,
 };
 
 export const AuthApi = {
@@ -48,8 +76,14 @@ export const UserApi = {
   get() {
     return axios.get(urls.profile);
   },
+  getById(id) {
+    return axios.get(urls.getUserById(id));
+  },
   patch(body) {
     return axios.patch(urls.user, body);
+  },
+  getList() {
+    return axios.get(urls.userList);
   },
 };
 
@@ -67,6 +101,12 @@ export const CompanyApi = {
     return axios.get(urls.getCompany(id));
   },
   patch(body: PatchCompanyFormValues) {
-    return axios.patch(urls.patchCompany(body.id), body);
+    return axios.patch(urls.company, body);
+  },
+  getList(body) {
+    return axios.post(urls.companyList, body);
+  },
+  delete(id: string) {
+    return axios.delete(urls.deleteCompany(id));
   },
 };

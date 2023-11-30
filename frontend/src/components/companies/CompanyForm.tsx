@@ -23,6 +23,7 @@ interface CompanyProps {
   submitButtonName?: string;
   validationSchema: any;
   onSubmit: (formData: CompanyFormValues) => void;
+  onCompanyRemove?: (id: string) => void;
 }
 
 export const CompanyForm: React.FC<CompanyProps> = ({
@@ -37,6 +38,7 @@ export const CompanyForm: React.FC<CompanyProps> = ({
   submitButtonName = "Create",
   validationSchema,
   onSubmit,
+  onCompanyRemove,
 }): JSX.Element => {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
@@ -100,6 +102,12 @@ export const CompanyForm: React.FC<CompanyProps> = ({
 
     if (Object.keys(errors).length === 0) {
       onSubmit(collectPossibleFields());
+    }
+  };
+
+  const handleRemove = () => {
+    if (onCompanyRemove) {
+      onCompanyRemove(id || "");
     }
   };
 
@@ -222,6 +230,12 @@ export const CompanyForm: React.FC<CompanyProps> = ({
         </EFieldWrapper>
 
         <SharedButton onClick={handleSubmit}>{submitButtonName}</SharedButton>
+
+        {onCompanyRemove && (
+          <SharedButton onClick={handleRemove} data-isremoval="true">
+            Remove
+          </SharedButton>
+        )}
       </FormInputsLayout>
     </SharedCard>
   );

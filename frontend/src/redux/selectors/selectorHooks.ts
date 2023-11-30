@@ -18,7 +18,13 @@ import {
   selectCompaniesSortOrderType,
 } from "./selectors";
 import { CountryInfo } from "../register/registerReducer";
-import { selectUserById } from "../users/usersSlice";
+import {
+  selectAllUsers,
+  selectTotalUsers,
+  selectUserById,
+  selectUserEntities,
+  selectUserIds,
+} from "../users/usersSlice";
 import { Company, User } from "../../models/models";
 import {
   selectCompanyById,
@@ -29,8 +35,6 @@ import {
   SortOrderType,
 } from "../companies/companiesSlice";
 import { Dictionary, EntityId } from "@reduxjs/toolkit";
-
-
 
 export const useReduxMainState = (): any =>
   useAppSelector(createSelector(selectReduxMainState, (i) => i));
@@ -66,9 +70,29 @@ export const usePhoneDropDownState = (): boolean =>
 
 // Users
 
+export const useUserIds = (): EntityId[] =>
+  useAppSelector(
+    createSelector(selectUsersState, (state) => selectUserIds(state))
+  );
+
 export const useUserById = (id: string): User | undefined =>
   useAppSelector(
     createSelector(selectUsersState, (state) => selectUserById(state, id))
+  );
+
+export const useUserEntities = (): Dictionary<User> =>
+  useAppSelector(
+    createSelector(selectUsersState, (state) => selectUserEntities(state))
+  );
+
+export const useAllUsers = (): User[] =>
+  useAppSelector(
+    createSelector(selectUsersState, (state) => selectAllUsers(state))
+  );
+
+export const useTotalUsers = (): number =>
+  useAppSelector(
+    createSelector(selectUsersState, (state) => selectTotalUsers(state))
   );
 
 // Companies

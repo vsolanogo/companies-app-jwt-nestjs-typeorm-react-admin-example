@@ -28,14 +28,34 @@ export const patchUserErrorAction = createPlainAction(
 export const patchUserOperation =
   (patchUserDto: PatchUserValues): AppThunkAction<Promise<void>> =>
   async (dispatch) => {
-    console.log({ patchUserDto });
-
     try {
       const res = await UserApi.patch(patchUserDto);
-      console.log({ res });
       dispatch(usersSlice.actions.upsertOne(res.data));
 
       dispatch(setDisplayMessageAction("Success"));
+    } catch (error: any) {
+      dispatch(setDisplayMessageAction(error?.response?.data?.message));
+    }
+  };
+
+export const getAllUsersOperation =
+  (): AppThunkAction<Promise<void>> => async (dispatch) => {
+    try {
+      const res = await UserApi.getList();
+      dispatch(usersSlice.actions.upsertMany(res.data));
+    } catch (error: any) {
+      if (error?.response && error?.response?.status === 401) {
+        dispatch(setDisplayMessageAction(error?.response?.data?.message));
+      }
+    }
+  };
+
+export const getUserAsAdminOperation =
+  (id: string): AppThunkAction<Promise<void>> =>
+  async (dispatch) => {
+    try {
+      const res = await UserApi.getById(id);
+      dispatch(usersSlice.actions.upsertOne(res.data));
     } catch (error: any) {
       dispatch(setDisplayMessageAction(error?.response?.data?.message));
     }

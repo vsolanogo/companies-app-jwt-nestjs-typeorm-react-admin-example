@@ -44,4 +44,11 @@ export class AuthController {
   async getProfile(@Request() req): Promise<User> {
     return this.userService.findOne(req?.user?.id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
+  @Post('logout')
+  async logout(@Request() req) {
+    // As JWT is stateless, we will utilize it for logging purposes
+  }
 }

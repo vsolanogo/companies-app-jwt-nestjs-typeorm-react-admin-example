@@ -8,6 +8,7 @@ import {
   Param,
   Get,
   Patch,
+  Delete,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CompanyService } from './company.service';
@@ -17,6 +18,9 @@ import { CompanyDto } from './dto/company.dto';
 import { Serialize } from '../interceptors/serialize.interceptor';
 import { GetCompaniesDto } from './dto/get-companies.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
+import { Role } from '../models/models';
+import { HasRoles } from '../auth/has-roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 
 @Controller()
 export class CompanyController {
@@ -32,7 +36,7 @@ export class CompanyController {
     return await this.companyService.getById(
       companyId,
       req?.user?.id,
-      req?.user?.admin,
+      req?.user?.roles?.includes(Role.Admin),
     );
   }
 
@@ -48,7 +52,7 @@ export class CompanyController {
 
   @Serialize(CompanyDto)
   @UseGuards(JwtAuthGuard)
-  @Patch('company/:id')
+  @Patch('company')
   async updateCompany(
     @Body() body: UpdateCompanyDto,
     @Request() req,
@@ -56,7 +60,7 @@ export class CompanyController {
     return await this.companyService.updateCompany(
       body,
       req?.user?.id,
-      req?.user?.admin,
+      req?.user?.roles?.includes(Role.Admin),
     );
   }
 
@@ -68,5 +72,30 @@ export class CompanyController {
     @Request() req,
   ): Promise<Company[]> {
     return await this.companyService.getAllUserCompanies(body, req?.user?.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('company/:id')
+  @HttpCode(204)
+  async deleteCompany(
+    @Param('id') companyId: string,
+    @Request() req,
+  ): Promise<void> {
+    return await this.companyService.deleteCompany(
+      companyId,
+      req?.user?.id,
+      req?.user?.roles?.includes(Role.Admin),
+    );
+  }
+
+  @Serialize(CompanyDto)
+  @HasRoles(Role.Admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post('company/list')
+  async getAllUsers(
+    @Body() body: GetCompaniesDto,
+    @Request() req,
+  ): Promise<Company[]> {
+    return this.companyService.getAllUserCompanies(body, req?.user?.id, true);
   }
 }

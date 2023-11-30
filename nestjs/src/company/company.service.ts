@@ -46,7 +46,7 @@ export class CompanyService {
 
     if (!isAdmin && modifiedCompany.user.id !== userId) {
       throw new ForbiddenException(
-        'You do not have permission to get this entity',
+        'You do not have permission to update this entity',
       );
     }
 
@@ -57,7 +57,12 @@ export class CompanyService {
     modifiedCompany.description = companyDto.description;
     modifiedCompany.type = companyDto.type;
 
-    return this.companyRepository.save(modifiedCompany);
+    const errors = await validate(modifiedCompany);
+    if (errors.length > 0) {
+      throw new BadRequestException(errors);
+    } else {
+      return this.companyRepository.save(modifiedCompany);
+    }
   }
 
   async getById(
@@ -86,6 +91,7 @@ export class CompanyService {
   async getAllUserCompanies(
     getCompaniesDto: GetCompaniesDto,
     userId: string,
+    ignoreUserIdCondition: boolean = false,
   ): Promise<Company[]> {
     const { page = 1, limit = 10, sortBy, sortOrder } = getCompaniesDto;
     const skip = (page - 1) * limit;
@@ -99,10 +105,16 @@ export class CompanyService {
       [validSortBy]: validSortOrder,
     };
 
+    // Conditionally add the userId condition
+
+    const whereCondition = ignoreUserIdCondition
+      ? {}
+      : { user: { id: userId } };
+
     // *Сортировка должна происходить на серверной
     // стороне по Name, Service полям*.
     const companies = await this.companyRepository.find({
-      where: { user: { id: userId } },
+      where: whereCondition,
       // skip,
       // take: limit,
       order,
@@ -138,5 +150,28 @@ export class CompanyService {
     return this.companyRepository.save(newCompany).catch((e) => {
       throw new BadRequestException('Failed to save company');
     });
+  }
+
+  async deleteCompany(
+    companyId: string,
+    userId: string,
+    isAdmin: boolean,
+  ): Promise<void> {
+    const company = await this.companyRepository.findOne({
+      relations: ['user'],
+      where: { id: companyId },
+    });
+
+    if (!company) {
+      throw new NotFoundException('Company not found');
+    }
+
+    if (!isAdmin && company.user.id !== userId) {
+      throw new ForbiddenException(
+        'You do not have permission to delete this entity',
+      );
+    }
+
+    await this.companyRepository.remove(company);
   }
 }

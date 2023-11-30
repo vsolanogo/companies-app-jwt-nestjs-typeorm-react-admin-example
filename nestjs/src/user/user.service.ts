@@ -10,6 +10,7 @@ import { User } from './user.entity';
 import { SignupDto } from '../auth/dto/signup.dto';
 import { validate } from 'class-validator';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Role } from '../models/models';
 
 @Injectable()
 export class UserService {
@@ -43,13 +44,14 @@ export class UserService {
     newUser.nickName = signupDto.nickName;
     newUser.description = signupDto.description;
     newUser.position = signupDto.position;
+    newUser.roles = [Role.User];
 
     const pwd = await bcrypt.hash(signupDto.password, 10);
     newUser.password = pwd;
 
     const errors = await validate(newUser);
     if (errors.length > 0) {
-      throw new Error(`Validation failed!`);
+      throw new BadRequestException(errors);
     } else {
       return this.userRepository.save(newUser);
     }
@@ -97,6 +99,41 @@ export class UserService {
     modifiedUser.description = updateUserDto.description;
     modifiedUser.position = updateUserDto.position;
 
-    return this.userRepository.save(modifiedUser);
+    const errors = await validate(modifiedUser);
+    if (errors.length > 0) {
+      throw new BadRequestException(errors);
+    } else {
+      return this.userRepository.save(modifiedUser);
+    }
+  }
+
+  async createAdminUser(): Promise<void> {
+    const existingAdmin = await this.userRepository.findOne({
+      where: { nickName: 'admin' },
+    });
+
+    if (existingAdmin) {
+      return;
+    }
+
+    const adminUser = new User();
+    adminUser.email = 'admin@admin.com';
+    adminUser.phoneNumber = '+';
+    adminUser.lastName = 'admin';
+    adminUser.firstName = 'admin';
+    adminUser.nickName = 'admin';
+    adminUser.description = 'admin';
+    adminUser.position = 'admin';
+    adminUser.roles = [Role.Admin];
+
+    const pwd = await bcrypt.hash('admin', 10);
+    adminUser.password = pwd;
+
+    this.userRepository.save(adminUser);
+  }
+
+  async getAll(): Promise<User[]> {
+    const users = await this.userRepository.find();
+    return users;
   }
 }

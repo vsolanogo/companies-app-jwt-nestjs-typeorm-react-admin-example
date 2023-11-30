@@ -24,8 +24,14 @@ export enum CompaniesActions {
 
   COMPANIES_POST_START = "companies/Post/start",
   COMPANIES_POST_SUCCESS = "companies/Post/success",
-  COMPANIES_POST_ERROR = "companies/Get/error",
+  COMPANIES_POST_ERROR = "companies/Post/error",
+
+  COMPANIES_GET_ALL_SUCCESS = "companies/GetAll/success",
 }
+
+export const companiesGetAllSuccessAction = createPlainAction(
+  CompaniesActions.COMPANIES_GET_ALL_SUCCESS
+);
 
 export const companiesGetStartAction = createPlainAction(
   CompaniesActions.COMPANIES_GET_START
@@ -67,6 +73,29 @@ export const getCompaniesOperation =
     }
   };
 
+export const getAllCompaniesOperation =
+  (): AppThunkAction<Promise<void>> => async (dispatch, getState) => {
+    const state = getState();
+    const sortByType = selectCompaniesSortByType(state);
+    const sortOrder = selectCompaniesSortOrderType(state);
+
+    try {
+      const res = await CompanyApi.getList({
+        sortBy: sortByType,
+        sortOrder: sortOrder,
+      });
+
+      dispatch(companiesSlice.actions.removeAll());
+      dispatch(companiesSlice.actions.addMany(res.data));
+
+      dispatch(companiesGetAllSuccessAction());
+    } catch (error: any) {
+      if (error?.response && error?.response?.status === 401) {
+        dispatch(setDisplayMessageAction(error?.response?.data?.message));
+      }
+    }
+  };
+
 export const postCompanyOperation =
   (createCompanyData: PostCompanyValues): AppThunkAction<Promise<void>> =>
   async (dispatch) => {
@@ -89,9 +118,7 @@ export const getCompanyOperation =
     try {
       const res = await CompanyApi.get(id);
       dispatch(companiesSlice.actions.upsertOne(res.data));
-      console.log(res.data);
       dispatch(usersSlice.actions.upsertOne(res.data.user));
-      console.log(res.data.user);
     } catch (error: any) {
       dispatch(setDisplayMessageAction(error?.response?.data?.message));
     }
@@ -106,6 +133,19 @@ export const patchCompanyOperation =
       dispatch(companiesSlice.actions.upsertOne(res.data));
 
       dispatch(setDisplayMessageAction("Success"));
+    } catch (error: any) {
+      dispatch(setDisplayMessageAction(error?.response?.data?.message));
+    }
+  };
+
+export const deleteCompanyOperation =
+  (id: string): AppThunkAction<Promise<void>> =>
+  async (dispatch) => {
+    try {
+      const res = await CompanyApi.delete(id);
+      dispatch(companiesSlice.actions.removeOne(id));
+      dispatch(setDisplayMessageAction("Success"));
+      navigate(`/allcompanies`);
     } catch (error: any) {
       dispatch(setDisplayMessageAction(error?.response?.data?.message));
     }

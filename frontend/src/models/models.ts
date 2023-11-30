@@ -48,6 +48,11 @@ export interface UserFormValues {
   position?: string;
 }
 
+export enum Role {
+  User = "user",
+  Admin = "admin",
+}
+
 export interface PatchUserValues {
   id?: string;
   phoneNumber?: string;
@@ -71,6 +76,7 @@ export interface SignupFormErrors {
 
 export type User = {
   id: string;
+  roles: [Role];
   email: string;
   phoneNumber: string;
   lastName: string;

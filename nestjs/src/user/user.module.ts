@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
@@ -10,4 +10,10 @@ import { Company } from '../company/company.entity';
   controllers: [UserController],
   providers: [UserService],
 })
-export class UserModule {}
+export class UserModule implements OnModuleInit {
+  constructor(private readonly userService: UserService) {}
+
+  async onModuleInit() {
+    await this.userService.createAdminUser();
+  }
+}

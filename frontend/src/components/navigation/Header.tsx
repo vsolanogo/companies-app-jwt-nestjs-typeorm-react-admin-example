@@ -1,15 +1,16 @@
 import React from "react";
 import styled from "@emotion/styled";
-import { useRoute, useLocation, useParams, useRouter, Link } from "wouter";
-import { useIsAuthenticated } from "../../redux/selectors/selectorHooks";
+import { useRoute, useLocation, Link } from "wouter";
+import { useUserById, useUserId } from "../../redux/selectors/selectorHooks";
 import { logoutOperation } from "../../redux/user/userActions";
 import { useAppDispatch } from "../../store/store";
-import { SharedButton } from "../shared";
+import { SharedButton, SharedButtonLink } from "../shared";
+import { Role } from "../../models/models";
 
 export const Header: React.FC = (): JSX.Element => {
   const dispatch = useAppDispatch();
-
-  const isAuthenticated = useIsAuthenticated();
+  const id = useUserId();
+  const userEntity = useUserById(id);
 
   const handleSignout = () => {
     dispatch(logoutOperation());
@@ -17,58 +18,74 @@ export const Header: React.FC = (): JSX.Element => {
 
   const [match, params] = useRoute("/signin");
 
-  // console.log(match);
-  // console.log(params);
-
   const [location /*setLocation*/] = useLocation();
 
-  // console.log({ location });
+  const isAdmin = userEntity?.roles?.includes(Role.Admin);
 
-  const params2 = useParams();
-
-  // console.log({ params2 });
-
-  const router = useRouter();
-
-  // console.log({ router });
+  const cols = isAdmin ? 6 : id ? 4 : 2;
 
   return (
-    <EHeader data-columns={isAuthenticated && "4"}>
-      {!isAuthenticated && (
+    <EHeader data-columns={`${cols}`}>
+      {!id && (
         <>
-          <Link href={`/signin`}>
-            <SharedButton data-isactive={location === "/signin"}>
-              Login
-            </SharedButton>
-          </Link>
+          <SharedButtonLink
+            href={`/signin`}
+            data-isactive={location === "/signin"}
+          >
+            Login
+          </SharedButtonLink>
 
-          <Link href={`/signup`}>
-            <SharedButton data-isactive={location === "/signup"}>
-              Register
-            </SharedButton>
-          </Link>
+          <SharedButtonLink
+            href={`/signup`}
+            data-isactive={location === "/signup"}
+          >
+            Register
+          </SharedButtonLink>
         </>
       )}
 
-      {isAuthenticated && (
+      {id && (
         <>
-          <Link href={`/profile`}>
-            <SharedButton data-isactive={location === "/profile"}>
-              Profile
-            </SharedButton>
-          </Link>
+          <SharedButtonLink
+            href={`/profile`}
+            data-isactive={location === "/profile"}
+          >
+            Profile
+          </SharedButtonLink>
 
-          <Link href={`/companies`}>
-            <SharedButton data-isactive={location === "/companies"}>
-              Companies
-            </SharedButton>
-          </Link>
+          <SharedButtonLink
+            href={`/companies`}
+            data-isactive={location === "/companies"}
+          >
+            Companies
+          </SharedButtonLink>
 
-          <Link href={`/newcompany`}>
-            <SharedButton data-isactive={location === "/newcompany"}>
-              New company
-            </SharedButton>
-          </Link>
+          <SharedButtonLink
+            href={`/newcompany`}
+            data-isactive={location === "/newcompany"}
+          >
+            New company
+          </SharedButtonLink>
+
+          {isAdmin && (
+            <>
+              <SharedButtonLink
+                href={`/allcompanies`}
+                data-isactive={location === "/allcompanies"}
+                data-isadmin="true"
+              >
+                All companies
+              </SharedButtonLink>
+
+              <SharedButtonLink
+                href={`/allusers`}
+                data-isactive={location === "/allusers"}
+                data-isadmin="true"
+              >
+                All users
+              </SharedButtonLink>
+            </>
+          )}
 
           <SharedButton onClick={handleSignout}>Sign out</SharedButton>
         </>
@@ -93,8 +110,17 @@ const EHeader = styled.header`
   padding: 0.5rem;
   border: 1px solid #d2d6dc;
   border-radius: 0 0 0.375rem 0.375rem;
+  box-sizing: border-box;
+
+  &[data-columns="2"] {
+    grid-template-columns: max-content max-content;
+  }
 
   &[data-columns="4"] {
-    grid-template-columns: max-content max-content max-content max-content;
+    grid-template-columns: repeat(4, max-content);
+  }
+
+  &[data-columns="6"] {
+    grid-template-columns: repeat(6, max-content);
   }
 `;

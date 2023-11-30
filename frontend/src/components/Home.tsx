@@ -6,10 +6,5 @@ export const Home: React.FC = (): JSX.Element => {
   const id = useUserId();
   const userEntity = useUserById(id);
 
-  return (
-    <div>
-      <Heading>{id}</Heading>
-      <Heading>{JSON.stringify(userEntity, undefined, 2)}</Heading>
-    </div>
-  );
+  return <Heading>Welcome, {userEntity?.nickName}</Heading>;
 };

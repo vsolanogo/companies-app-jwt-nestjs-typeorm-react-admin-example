@@ -15,8 +15,7 @@ import {
   randProductCategory,
 } from '@ngneat/falso';
 import { faker } from '@faker-js/faker';
-import { CreateCompanyDto } from 'src/company/dto/create-company.dto';
-import { UpdateUserDto } from 'src/user/dto/update-user.dto';
+import { CreateCompanyDto } from '../src/company/dto/create-company.dto';
 
 const generateRandomSignupDto = (): SignupDto => ({
   email: randEmail(),
@@ -211,6 +210,7 @@ describe('Company Tests (e2e)', () => {
     await app.init();
 
     const signupDto: SignupDto = generateRandomSignupDto();
+
     await request(app.getHttpServer())
       .post('/signup')
       .send(signupDto)
@@ -308,4 +308,215 @@ describe('Company Tests (e2e)', () => {
 
     expect(response.body).toHaveLength(amount);
   }, 100000);
+
+  //
+  //
+  //
+  //
+  //
+
+  it('/company/:id (GET) - Get a specific company by ID', async () => {
+    const companyDto = generateRandomCompanyDto();
+
+    // Create a new company
+    const createResponse = await request(app.getHttpServer())
+      .post('/company')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send(companyDto)
+      .expect(HttpStatus.CREATED);
+
+    const companyId = createResponse.body.id;
+
+    // Retrieve the created company by ID
+    const getResponse = await request(app.getHttpServer())
+      .get(`/company/${companyId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(HttpStatus.OK);
+
+    expect(getResponse.body.id).toBe(companyId);
+    expect(getResponse.body.name).toBe(companyDto.name);
+    expect(getResponse.body.user).toBeDefined();
+    expect(getResponse.body.user.password).toBeUndefined();
+  });
+
+  it('/company/:id (GET) - Unauthorized without token', async () => {
+    const companyDto = generateRandomCompanyDto();
+
+    const createResponse = await request(app.getHttpServer())
+      .post('/company')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send(companyDto)
+      .expect(HttpStatus.CREATED);
+
+    const companyId = createResponse.body.id;
+
+    const getResponse = await request(app.getHttpServer())
+      .get(`/company/${companyId}`)
+      .expect(HttpStatus.UNAUTHORIZED);
+
+    expect(getResponse.body.message).toBe('Unauthorized');
+  });
+
+  it("/company/:id (GET) - Forbidden when trying to access another user's company", async () => {
+    const companyDto = generateRandomCompanyDto();
+
+    const createResponse = await request(app.getHttpServer())
+      .post('/company')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send(companyDto)
+      .expect(HttpStatus.CREATED);
+
+    const companyId = createResponse.body.id;
+
+    // Sign in with a new user
+    const anotherUserSignupDto: SignupDto = generateRandomSignupDto();
+
+    await request(app.getHttpServer())
+      .post('/signup')
+      .send(anotherUserSignupDto)
+      .expect(HttpStatus.CREATED);
+
+    const anotherUserSigninDto: SigninDto = {
+      email: anotherUserSignupDto.email,
+      password: anotherUserSignupDto.password,
+    };
+
+    const anotherUserSigninResponse = await request(app.getHttpServer())
+      .post('/signin')
+      .send(anotherUserSigninDto)
+      .expect(HttpStatus.OK);
+
+    const anotherUserAccessToken = anotherUserSigninResponse.body.access_token;
+
+    // Try to retrieve the created company by ID with the new user's token
+    const getResponse = await request(app.getHttpServer())
+      .get(`/company/${companyId}`)
+      .set('Authorization', `Bearer ${anotherUserAccessToken}`)
+      .expect(HttpStatus.FORBIDDEN);
+
+    expect(getResponse.body.message).toBe(
+      'You do not have permission to get this entity',
+    );
+  });
+
+  it('/company (PATCH) - Update a specific company by ID', async () => {
+    const companyDto = generateRandomCompanyDto();
+
+    const createResponse = await request(app.getHttpServer())
+      .post('/company')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send(companyDto)
+      .expect(HttpStatus.CREATED);
+
+    const companyId = createResponse.body.id;
+
+    const updatedCompanyDto = {
+      ...createResponse.body,
+      name: 'Updated Company Name',
+    };
+
+    const patchResponse = await request(app.getHttpServer())
+      .patch(`/company`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send(updatedCompanyDto)
+      .expect(HttpStatus.OK);
+
+    expect(patchResponse.body.id).toBe(companyId);
+    expect(patchResponse.body.name).toBe(updatedCompanyDto.name);
+  });
+
+  it('/company (PATCH) - Unauthorized without token', async () => {
+    const companyDto = generateRandomCompanyDto();
+
+    const createResponse = await request(app.getHttpServer())
+      .post('/company')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send(companyDto)
+      .expect(HttpStatus.CREATED);
+
+    const companyId = createResponse.body.id;
+
+    const updatedCompanyDto = {
+      ...createResponse.body,
+      name: 'Updated Company Name',
+    };
+
+    const patchResponse = await request(app.getHttpServer())
+      .patch(`/company`)
+      .send(updatedCompanyDto)
+      .expect(HttpStatus.UNAUTHORIZED);
+
+    expect(patchResponse.body.message).toBe('Unauthorized');
+  });
+
+  it("/company (PATCH) - Forbidden when trying to update another user's company", async () => {
+    const companyDto = generateRandomCompanyDto();
+
+    const createResponse = await request(app.getHttpServer())
+      .post('/company')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send(companyDto)
+      .expect(HttpStatus.CREATED);
+
+    const companyId = createResponse.body.id;
+
+    const anotherUserSignupDto: SignupDto = generateRandomSignupDto();
+
+    await request(app.getHttpServer())
+      .post('/signup')
+      .send(anotherUserSignupDto)
+      .expect(HttpStatus.CREATED);
+
+    const anotherUserSigninDto: SigninDto = {
+      email: anotherUserSignupDto.email,
+      password: anotherUserSignupDto.password,
+    };
+
+    const anotherUserSigninResponse = await request(app.getHttpServer())
+      .post('/signin')
+      .send(anotherUserSigninDto)
+      .expect(HttpStatus.OK);
+
+    const anotherUserAccessToken = anotherUserSigninResponse.body.access_token;
+
+    const updatedCompanyDto = {
+      ...createResponse.body,
+      name: 'Updated Company Name',
+    };
+
+    const patchResponse = await request(app.getHttpServer())
+      .patch(`/company`)
+      .set('Authorization', `Bearer ${anotherUserAccessToken}`)
+      .send(updatedCompanyDto)
+      .expect(HttpStatus.FORBIDDEN);
+
+    expect(patchResponse.body.message).toBe(
+      'You do not have permission to update this entity',
+    );
+  });
+
+  it('/company/:id (DELETE) - Delete a specific company by ID', async () => {
+    const companyDto = generateRandomCompanyDto();
+
+    // Create a new company
+    const createResponse = await request(app.getHttpServer())
+      .post('/company')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send(companyDto)
+      .expect(HttpStatus.CREATED);
+
+    const companyId = createResponse.body.id;
+
+    // Delete the created company by ID
+    await request(app.getHttpServer())
+      .delete(`/company/${companyId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(HttpStatus.NO_CONTENT);
+
+    // Verify the company is deleted
+    await request(app.getHttpServer())
+      .get(`/company/${companyId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(HttpStatus.NOT_FOUND);
+  });
 });

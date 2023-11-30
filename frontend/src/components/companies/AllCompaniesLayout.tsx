@@ -1,17 +1,17 @@
 import React from "react";
 import { useAppDispatch } from "../../store/store";
-import { getCompaniesOperation } from "../../redux/companies/companiesActions";
+import { getAllCompaniesOperation } from "../../redux/companies/companiesActions";
 import { CompaniesTable } from "./CompaniesTable";
 
-export const CompaniesLayer: React.FC = (): JSX.Element => {
+export const AllCompaniesLayout: React.FC = (): JSX.Element => {
   const dispatch = useAppDispatch();
 
   React.useEffect(() => {
-    dispatch(getCompaniesOperation());
+    dispatch(getAllCompaniesOperation());
   }, []);
 
   const fetchHandler = () => {
-    dispatch(getCompaniesOperation());
+    dispatch(getAllCompaniesOperation());
   };
 
   return <CompaniesTable onFetchHandler={fetchHandler} />;

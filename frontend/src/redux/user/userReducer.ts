@@ -43,6 +43,8 @@ export function userReducer(
       return {
         ...state,
         isLoading: false,
+        isAuthenticated: false,
+        id: null,
       };
 
     case UserActions.LOAD_USER_START:
@@ -109,6 +111,8 @@ export function userReducer(
       return {
         ...state,
         isLoading: false,
+        isAuthenticated: false,
+        id: null,
       };
 
     default:

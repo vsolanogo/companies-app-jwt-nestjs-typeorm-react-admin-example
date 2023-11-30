@@ -73,6 +73,11 @@ export const UserForm: React.FC<UserProps> = ({
     setNickName(defaultNickName);
     setDescription(defaultDescription);
     setPosition(defaultPosition);
+
+    const resParse = parsePhoneNumberFromString(defaultPhone ?? "");
+    const countryCode = resParse?.country;
+
+    setPhoneCountryCode(countryCode || "UA");
   }, [
     defaultPhone,
     defaultPhoneCountryCode,
@@ -83,8 +88,8 @@ export const UserForm: React.FC<UserProps> = ({
     defaultDescription,
     defaultPosition,
   ]);
-  type FormErrors = typeof validationSchema.fields;
 
+  type FormErrors = typeof validationSchema.fields;
   const [signupFormErrors, setSignupFormErrors] = useState<FormErrors>({});
 
   const handleCountryFlagClick = (e) => {

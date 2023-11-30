@@ -1,16 +1,21 @@
 import React, { useState } from "react";
-import {
-  setDisplayMessageAction,
-  loginOperation,
-} from "../redux/user/userActions";
+import { loginOperation } from "../redux/user/userActions";
 import { useAppDispatch } from "../store/store";
-import { validateEmail } from "../helpers/validateEmail";
 import {
+  EFieldWrapper,
+  ErrorMessage,
   FormInputsLayout,
+  InputLabel,
   SharedButton,
   SharedCard,
   SharedInput,
 } from "./shared";
+import { signinValidationSchema, validateData } from "../models/models";
+
+interface SignInFormData {
+  email?: string;
+  password?: string;
+}
 
 export const Login: React.FC = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -18,37 +23,69 @@ export const Login: React.FC = (): JSX.Element => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
+  const [signinFormErrors, setSigninFormErrors] = useState<SignInFormData>({});
 
-    if (!validateEmail(email)) {
+  const validateFields = async () => {
+    const errors = await validateData(
+      { email, password },
+      signinValidationSchema
+    );
 
-      dispatch(setDisplayMessageAction("Invalid email"));
-      return;
+    if (Object.keys(errors).length === 0) {
+      setSigninFormErrors({});
+    } else {
+      setSigninFormErrors(errors);
     }
 
-    dispatch(loginOperation({ email, password }));
+    return errors;
+  };
+
+  const handleSubmit = async () => {
+    const errors = await validateFields();
+
+    if (Object.keys(errors).length === 0) {
+      dispatch(loginOperation({ email, password }));
+    }
   };
 
   return (
     <SharedCard>
       <FormInputsLayout>
-        <SharedInput
-          type="email"
-          placeholder="email"
-          onChange={(e) => {
-            setEmail(e.target.value);
-          }}
-          value={email}
-        />
-        <SharedInput
-          type="password"
-          placeholder="password"
-          onChange={(e) => {
-            setPassword(e.target.value);
-          }}
-          value={password}
-        />
-        <SharedButton onClick={handleLogin}>Login</SharedButton>
+        <EFieldWrapper>
+          <InputLabel data-display={!!email}>Email</InputLabel>
+
+          <SharedInput
+            type="email"
+            placeholder="email"
+            onChange={(e) => {
+              setEmail(e.target.value);
+            }}
+            value={email}
+            data-iserror={!!signinFormErrors.email}
+          />
+          <ErrorMessage data-iserror={!!signinFormErrors.email}>
+            {signinFormErrors.email}
+          </ErrorMessage>
+        </EFieldWrapper>
+
+        <EFieldWrapper>
+          <InputLabel data-display={!!email}>Password</InputLabel>
+
+          <SharedInput
+            type="password"
+            placeholder="password"
+            onChange={(e) => {
+              setPassword(e.target.value);
+            }}
+            value={password}
+            data-iserror={!!signinFormErrors.password}
+          />
+          <ErrorMessage data-iserror={!!signinFormErrors.password}>
+            {signinFormErrors.password}
+          </ErrorMessage>
+        </EFieldWrapper>
+
+        <SharedButton onClick={handleSubmit}>Login</SharedButton>
       </FormInputsLayout>
     </SharedCard>
   );

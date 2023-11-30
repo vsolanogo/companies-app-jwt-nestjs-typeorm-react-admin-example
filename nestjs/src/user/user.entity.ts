@@ -6,8 +6,9 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { IsOptional, IsString, IsEmail } from 'class-validator';
+import { IsString, IsEmail, IsArray } from 'class-validator';
 import { Company } from '../company/company.entity';
+import { Role } from '../models/models';
 
 @Entity()
 export class User {
@@ -17,8 +18,9 @@ export class User {
   @OneToMany(() => Company, (i) => i.user)
   companies: Company[];
 
-  @Column({ default: false })
-  admin: boolean;
+  @Column({ default: [Role.User], type: 'simple-array' })
+  @IsArray()
+  roles: string[];
 
   @Column({ nullable: false, length: 255, unique: true })
   @IsString()

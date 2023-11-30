@@ -1,4 +1,5 @@
 import { Expose } from 'class-transformer';
+import { Role } from '../../models/models';
 
 export class UserDto {
   @Expose()
@@ -6,6 +7,9 @@ export class UserDto {
 
   @Expose()
   email: string;
+
+  @Expose()
+  roles: Role[];
 
   password: string;
 

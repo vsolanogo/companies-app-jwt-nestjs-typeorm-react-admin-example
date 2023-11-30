@@ -34,6 +34,7 @@ export const companiesSlice = createSlice({
     upsertOne: companyAdapter.upsertOne,
     addMany: companyAdapter.addMany,
     removeAll: companyAdapter.removeAll,
+    removeOne: companyAdapter.removeOne,
   },
   extraReducers: (builder) => {
     builder
