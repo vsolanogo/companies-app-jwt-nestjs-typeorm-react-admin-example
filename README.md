@@ -43,3 +43,16 @@ Alternatively, you can run the backend part without Docker. For this, ensure you
 
 
 CORS in the browser is solved with a proxy server described in `vite.config.ts`, making it easier to switch the project from dev to prod mode.
+
+# Recommended VS Code Extensions
+
+1. [Color Highlight](https://marketplace.visualstudio.com/items?itemName=naumovs.color-highlight)
+   - Description: This extension provides color highlighting for web development in Visual Studio Code.
+
+2. [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+   - Description: Prettier is an opinionated code formatter that ensures consistent code style in your projects.
+
+3. [Styled Components](https://marketplace.visualstudio.com/items?itemName=styled-components.vscode-styled-components)
+   - Description: This extension offers syntax highlighting and IntelliSense support for styled-components in VS Code.
+
+ 
